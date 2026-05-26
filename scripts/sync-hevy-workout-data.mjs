@@ -87,26 +87,44 @@ function normalizeExerciseTemplate(item) {
 }
 
 function normalizeHistory(entries) {
-  return entries
-    .map((entry) => {
-      const sets = getList(entry, ["sets"]).map(normalizeSet).filter(Boolean);
-      const date = entry.start_time || entry.startTime || entry.workout_start_time || entry.date || entry.created_at;
-      if (!date || !sets.length) return null;
+  const sessions = new Map();
 
-      const weightedSets = sets.filter((set) => Number.isFinite(set.weight) && Number.isFinite(set.reps));
+  for (const entry of entries) {
+    const date = entry.start_time || entry.startTime || entry.workout_start_time || entry.date || entry.created_at;
+    const sets = getHistorySets(entry);
+    if (!date || !sets.length) continue;
+
+    const workoutId = entry.workout_id || entry.workoutId || date;
+    const sessionKey = `${workoutId}:${date}`;
+    const session = sessions.get(sessionKey) || {
+      date,
+      workoutTitle: entry.workout_title || entry.workoutTitle || entry.title || null,
+      sets: [],
+    };
+
+    session.sets.push(...sets);
+    sessions.set(sessionKey, session);
+  }
+
+  return [...sessions.values()]
+    .map((session) => {
+      const weightedSets = session.sets.filter((set) => Number.isFinite(set.weight) && Number.isFinite(set.reps));
       const bestByWeight = maxBy(weightedSets, (set) => set.weight) || {};
       const bestByOneRepMax = maxBy(weightedSets, (set) => estimatedOneRepMax(set.weight, set.reps)) || {};
-      const sessionVolume = sets.reduce((sum, set) => sum + (Number.isFinite(set.weight) && Number.isFinite(set.reps) ? set.weight * set.reps : 0), 0);
-      const totalReps = sets.reduce((sum, set) => sum + (Number.isFinite(set.reps) ? set.reps : 0), 0);
-      const durations = sets.map((set) => set.duration).filter(Number.isFinite);
-      const distances = sets.map((set) => set.distance).filter(Number.isFinite);
+      const sessionVolume = session.sets.reduce(
+        (sum, set) => sum + (Number.isFinite(set.weight) && Number.isFinite(set.reps) ? set.weight * set.reps : 0),
+        0,
+      );
+      const totalReps = session.sets.reduce((sum, set) => sum + (Number.isFinite(set.reps) ? set.reps : 0), 0);
+      const durations = session.sets.map((set) => set.duration).filter(Number.isFinite);
+      const distances = session.sets.map((set) => set.distance).filter(Number.isFinite);
       const bestDuration = durations.length ? Math.max(...durations) : undefined;
       const bestDistance = distances.length ? Math.max(...distances) : undefined;
 
       return pruneEmpty({
-        date,
-        workoutTitle: entry.workout_title || entry.workoutTitle || entry.title || null,
-        setCount: sets.length,
+        date: session.date,
+        workoutTitle: session.workoutTitle,
+        setCount: session.sets.length,
         bestWeight: bestByWeight.weight,
         bestReps: bestByWeight.reps,
         estimatedOneRepMax: Number.isFinite(bestByOneRepMax.weight)
@@ -120,6 +138,14 @@ function normalizeHistory(entries) {
     })
     .filter(Boolean)
     .sort((a, b) => new Date(a.date) - new Date(b.date));
+}
+
+function getHistorySets(entry) {
+  const nestedSets = getList(entry, ["sets"]).map(normalizeSet).filter(Boolean);
+  if (nestedSets.length) return nestedSets;
+
+  const flatSet = normalizeSet(entry);
+  return flatSet ? [flatSet] : [];
 }
 
 function normalizeSet(set) {
