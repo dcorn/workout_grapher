@@ -1,4 +1,5 @@
 const DATA_URL = "./data/workout-data.json";
+const KG_TO_LB = 2.2046226218;
 
 const ranges = [
   { label: "30D", days: 30 },
@@ -9,9 +10,9 @@ const ranges = [
 ];
 
 const metrics = [
-  { key: "bestWeight", label: "Top weight", unit: "kg", format: formatWeight },
-  { key: "estimatedOneRepMax", label: "Est. 1RM", unit: "kg", format: formatWeight },
-  { key: "sessionVolume", label: "Session volume", unit: "kg", format: formatWeight },
+  { key: "bestWeight", label: "Top weight", unit: "lb", format: formatWeight },
+  { key: "estimatedOneRepMax", label: "Est. 1RM", unit: "lb", format: formatWeight },
+  { key: "sessionVolume", label: "Session volume", unit: "lb", format: formatWeight },
   { key: "totalReps", label: "Total reps", unit: "reps", format: formatCount },
   { key: "bestDuration", label: "Best duration", unit: "time", format: formatDuration },
   { key: "bestDistance", label: "Best distance", unit: "km", format: formatDistance },
@@ -243,6 +244,7 @@ function renderRows(sessions) {
       row.innerHTML = `
         <td>${formatShortDate(new Date(session.date))}</td>
         <td>${formatBestSet(session)}</td>
+        <td>${formatWeight(session.bestWeight)}</td>
         <td>${formatWeight(session.sessionVolume)}</td>
         <td>${formatCount(session.totalReps)}</td>
         <td>${session.setCount || 0}</td>
@@ -285,7 +287,7 @@ function formatBestSet(session) {
 
 function formatWeight(value) {
   if (!Number.isFinite(value)) return "--";
-  return `${round(value)} kg`;
+  return `${round(kgToLb(value))} lb`;
 }
 
 function formatCount(value) {
@@ -309,6 +311,10 @@ function formatDelta(value, metric) {
   if (metric.unit === "time") return `${round(value)}s`;
   if (metric.unit === "km") return `${round(value / 1000)} km`;
   return metric.format(value);
+}
+
+function kgToLb(value) {
+  return value * KG_TO_LB;
 }
 
 function round(value) {
