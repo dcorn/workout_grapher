@@ -1,0 +1,58 @@
+name: Workout Grapher
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "18 10 * * *"
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/workout-grapher.yml"
+      - "docs/workout-grapher/**"
+      - "scripts/sync-hevy-workout-data.mjs"
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Sync Hevy workout data
+        env:
+          APIKEY: ${{ secrets.APIKEY }}
+        run: node scripts/sync-hevy-workout-data.mjs --out docs/workout-grapher/data/workout-data.json
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs/workout-grapher
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Workout Grapher</title>
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+    <main class="shell">
+      <section class="hero">
+        <div>
+          <p class="eyebrow">Hevy progress lab</p>
+          <h1>Workout Grapher</h1>
+          <p class="lede">Pick a lift, choose a window, and watch the trend line tell the story.</p>
+        </div>
+        <div class="sync-card">
+          <span class="sync-label">Last synced</span>
+          <strong id="lastSynced">Loading...</strong>
+        </div>
+      </section>
+
+      <section class="toolbar" aria-label="Graph controls">
+        <label class="field exercise-field">
+          <span>Exercise</span>
+          <select id="exerciseSelect"></select>
+        </label>
+
+        <label class="field">
+          <span>Metric</span>
+          <select id="metricSelect"></select>
+        </label>
+
+        <div class="field range-field">
+          <span>Range</span>
+          <div class="segmented" id="rangeButtons" role="group" aria-label="Date range"></div>
+        </div>
+      </section>
+
+      <section class="dashboard">
+        <div class="chart-panel">
+          <div class="chart-header">
+            <div>
+              <p id="chartKicker">Progress</p>
+              <h2 id="chartTitle">Choose an exercise</h2>
+            </div>
+            <div class="chart-stat">
+              <span id="bestLabel">Best</span>
+              <strong id="bestValue">--</strong>
+            </div>
+          </div>
+          <div id="chart" class="chart" role="img" aria-label="Exercise progress chart"></div>
+        </div>
+
+        <aside class="insights" aria-label="Progress summary">
+          <div class="insight">
+            <span>Sessions</span>
+            <strong id="sessionCount">--</strong>
+          </div>
+          <div class="insight">
+            <span>First</span>
+            <strong id="firstValue">--</strong>
+          </div>
+          <div class="insight">
+            <span>Latest</span>
+            <strong id="latestValue">--</strong>
+          </div>
+          <div class="insight delta">
+            <span>Change</span>
+            <strong id="changeValue">--</strong>
+          </div>
+        </aside>
+      </section>
+
+      <section class="table-panel">
+        <div class="section-heading">
+          <h2>Recent Sessions</h2>
+          <p id="tableHint">Select an exercise to see the latest logged work.</p>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Best set</th>
+                <th>Volume</th>
+                <th>Reps</th>
+                <th>Sets</th>
+              </tr>
+            </thead>
+            <tbody id="sessionRows"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <script src="./app.js" type="module"></script>
+  </body>
+</html>
